@@ -210,3 +210,18 @@ h1{
     text-decoration:none;
     color: #111;
 }
+.our_other_tools{
+    display:flex;
+    flex-direction:row;
+    justify-content: center;
+    align-items:center;
+}
+.online_tool_container{
+    text-align:center;
+}
+.other_tools_container{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
