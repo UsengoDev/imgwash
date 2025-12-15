@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title>ImgWash — Free Online Image Metadata Remover</title>
+
+	<meta name="description" content="ImgWash is a fast, free, client-side tool to remove metadata (EXIF, GPS, camera info) from images. Batch process multiple photos safely in your browser.">
+	<meta name="robots" content="index, follow">
+	<meta name="author" content="ImgWash">
+
+	<link rel="canonical" href="https://imgwash.com/">
+
+	<link rel="stylesheet" href="style.css">
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+
+<body>
+    <div id="header">
+        <a href="/" class="logo_container">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+              <rect width="64" height="64" fill="none"/>
+              <rect x="12" y="14" width="40" height="36" rx="4" ry="4" fill="#4A7CFF"/>
+              <rect x="16" y="10" width="32" height="36" rx="4" ry="4" fill="#6FA3FF"/>
+              <rect x="20" y="6" width="24" height="36" rx="4" ry="4" fill="#91C0FF"/>
+              <text x="32" y="30" font-size="20" font-family="Arial, sans-serif" font-weight="bold" fill="#fff" text-anchor="middle">I</text>
+            </svg>
+            <div class="logo_text_container">ImgWash</div>
+        </a>
+    </div>
+
+	<div class="container">
+		<h1>Image Metadata Remover</h1>
+		<p class="subtitle">
+			Remove EXIF and GPS data from images directly in your browser. 
+			No uploads. Fast. Private.
+		</p>
+
+		<div id="dropzone">
+			<p>Drag & drop images here</p>
+			<span>or</span>
+			<button id="selectBtn">Select Images</button>
+			<input type="file" id="fileInput" accept="image/*" multiple hidden>
+		</div>
+
+		<div class="controls">
+			<button id="processBtn">Remove Metadata</button>
+		</div>
+
+		<div id="downloadArea"></div>
+		<div id="progressWrapper" hidden>
+			<div id="progressText">Processing 0 / 0</div>
+			<div id="progressBar">
+				<div id="progressFill"></div>
+			</div>
+		</div>
+
+		<div id="previewCount" hidden></div>
+		<div id="preview"></div>
+		<div id="previewToggle">
+			<button id="togglePreview">Expand preview</button>
+		</div>
+
+		<div class="footnote">
+			<p>All processing happens locally in your browser. Your images never leave your device.</p>
+		</div>
+	</div>
+
+	<div id="footer">
+        <div class="footer_links">
+            <a href="/terms/">Terms</a>
+            <a href="/privacy/">Privacy</a>
+            <a href="/about/">About</a>
+            <a href="/contact/">Contact</a>
+        </div>
+        <div class="copyright">&copy; 2025 ImgWash. All rights reserved.</div>
+    </div>
+
+	<!-- External libraries -->
+	<script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+	<script src="script.js"></script>
+</body>
+</html>
