@@ -27,11 +27,7 @@ $(function(){
 	/* Drag & drop */
 	$dropzone.on('dragover', e => { e.preventDefault(); $dropzone.addClass('dragover'); });
 	$dropzone.on('dragleave', () => $dropzone.removeClass('dragover'));
-	$dropzone.on('drop', e => {
-		e.preventDefault();
-		$dropzone.removeClass('dragover');
-		handleFiles(e.originalEvent.dataTransfer.files);
-	});
+	$dropzone.on('drop', e => { e.preventDefault(); $dropzone.removeClass('dragover'); handleFiles(e.originalEvent.dataTransfer.files); });
 
 	function handleFiles(selectedFiles){
 		files = Array.from(selectedFiles).filter(f => f.type.startsWith('image/'));
@@ -44,6 +40,7 @@ $(function(){
 		$togglePreview.text('Expand preview');
 		$previewToggle.hide();
 
+		/* Update preview count */
 		if(files.length){
 			$previewCount.text(files.length + ' image' + (files.length>1?'s':'') + ' selected').prop('hidden', false);
 		}else{
@@ -74,7 +71,7 @@ $(function(){
 		$togglePreview.text(previewExpanded?'Collapse preview':'Expand preview');
 	});
 
-	/* Remove metadata (FIXED FOR ALL IMAGES) */
+	/* Remove metadata */
 	$processBtn.on('click', async ()=>{
 		if(!files.length) return;
 
@@ -84,92 +81,39 @@ $(function(){
 		$progressText.text('Processing 0 / '+files.length);
 
 		const zip = new JSZip();
-		let index = 0;
+		let index=0;
 
 		for(const file of files){
 			index++;
+			const reader = new FileReader();
+			const dataURL = await new Promise(resolve=>{
+				reader.onload = e=>resolve(e.target.result);
+				reader.readAsDataURL(file);
+			});
 
-			const dataURL = await readFileAsDataURL(file);
-			let blob;
-			let ext;
+			const stripped = piexif.remove(dataURL);
+			const blob = dataURLToBlob(stripped);
 
-			if(file.type === 'image/jpeg' || file.type === 'image/jpg'){
-				/* JPEG: real EXIF removal */
-				const stripped = piexif.remove(dataURL);
-				blob = dataURLToBlob(stripped);
-				ext = 'jpg';
-			}else{
-				/* ALL other formats: canvas re-encode */
-				blob = await stripViaCanvas(dataURL, file.type);
-				ext = getExtensionFromMime(file.type);
-			}
+			zip.file(file.name.replace(/\.[^/.]+$/,'')+'.jpg', blob);
 
-			zip.file(
-				file.name.replace(/\.[^/.]+$/, '') + '.' + ext,
-				blob
-			);
-
-			const percent = Math.round((index / files.length) * 100);
-			$progressFill.css('width', percent + '%');
-			$progressText.text('Processing ' + index + ' / ' + files.length);
+			const percent = Math.round((index/files.length)*100);
+			$progressFill.css('width', percent+'%');
+			$progressText.text('Processing '+index+' / '+files.length);
 		}
 
 		const zipBlob = await zip.generateAsync({type:'blob'});
 		const url = URL.createObjectURL(zipBlob);
 
 		$progressWrapper.prop('hidden', true);
-		$downloadArea.html(
-			'<a href="'+url+'" download="imgwash-images.zip">Download Cleaned Images (ZIP)</a>'
-		);
+		$downloadArea.html('<a href="'+url+'" download="imgwash-images.zip">Download Cleaned Images (ZIP)</a>');
 	});
 
-	function readFileAsDataURL(file){
-		return new Promise(resolve=>{
-			const reader = new FileReader();
-			reader.onload = e=>resolve(e.target.result);
-			reader.readAsDataURL(file);
-		});
-	}
-
-	function stripViaCanvas(dataURL, mime){
-		return new Promise(resolve=>{
-			const img = new Image();
-			img.onload = ()=>{
-				const canvas = document.createElement('canvas');
-				canvas.width = img.width;
-				canvas.height = img.height;
-
-				const ctx = canvas.getContext('2d');
-				ctx.drawImage(img, 0, 0);
-
-				let outMime = 'image/jpeg';
-				if(mime === 'image/png' || mime === 'image/webp') outMime = mime;
-
-				canvas.toBlob(blob=>{
-					resolve(blob);
-				}, outMime, 0.92);
-			};
-			img.src = dataURL;
-		});
-	}
-
-	function getExtensionFromMime(mime){
-		switch(mime){
-			case 'image/png': return 'png';
-			case 'image/webp': return 'webp';
-			case 'image/bmp': return 'bmp';
-			case 'image/gif': return 'gif';
-			default: return 'jpg';
-		}
-	}
-
 	function dataURLToBlob(dataURL){
-		const arr = dataURL.split(',');
-		const mime = arr[0].match(/:(.*?);/)[1];
+		const arr = dataURL.split(','), mime = arr[0].match(/:(.*?);/)[1];
 		const bstr = atob(arr[1]);
-		let n = bstr.length;
-		const u8arr = new Uint8Array(n);
-		while(n--) u8arr[n] = bstr.charCodeAt(n);
+		let n=bstr.length;
+		const u8arr=new Uint8Array(n);
+		while(n--) u8arr[n]=bstr.charCodeAt(n);
 		return new Blob([u8arr], {type:mime});
 	}
 });
